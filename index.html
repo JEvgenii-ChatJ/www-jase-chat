@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaseChat — 5 языков</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e6f0ff 0%, #f0f4ff 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+        }
+
+        .chat-container {
+            max-width: 100%;
+            width: 100%;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 0;
+            box-shadow: none;
+            padding: 20px 40px 20px;
+            display: flex;
+            flex-direction: column;
+            border: none;
+            position: relative;
+        }
+
+        .lang-selector {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            z-index: 50;
+            display: flex;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            padding: 4px 6px;
+            border-radius: 30px;
+            border: 1px solid rgba(30, 60, 180, 0.08);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            max-width: 400px;
+        }
+
+        .lang-selector button {
+            background: transparent;
+            border: none;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #6a7a9a;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .lang-selector button:hover {
+            background: rgba(26, 74, 154, 0.06);
+            color: #1a3a8a;
+        }
+
+        .lang-selector button.active {
+            background: linear-gradient(135deg, #1a4a9a, #2a5aaa);
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(26, 74, 154, 0.2);
+        }
+
+        .mode-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px 16px;
+            padding-bottom: 16px;
+            border-bottom: 1.5px solid rgba(30, 60, 180, 0.15);
+            margin-bottom: 16px;
+            padding-right: 160px;
+        }
+
+        .mode-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .mode-bar .title {
+            font-size: 21px;
+            font-weight: 700;
+            color: #1a3a8a;
+            background: linear-gradient(135deg, #1a4a9a, #2a5aaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .new-chat-icon {
+            width: 42px;
+            height: 42px;
+            min-width: 42px;
+            border-radius: 50%;
+            border: 2px solid rgba(30, 60, 180, 0.2);
+            background: linear-gradient(135deg, #1a4a9a, #2a5aaa);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(26, 74, 154, 0.2);
+            padding: 0;
+        }
+
+        .new-chat-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: #ffffff;
+        }
+
+        .mode-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .mode-btn {
+            background: rgba(30, 60, 180, 0.06);
+            border: 1px solid rgba(30, 60, 180, 0.12);
+            border-radius: 24px;
+            padding: 8px 22px;
+            font-size: 17px;
+            color: #1a3a8a;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #1a4a9a, #2a5aaa);
+            color: #ffffff;
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(26, 74, 154, 0.3);
+        }
+
+        .checks {
+            display: flex;
+            gap: 18px;
+            font-size: 16px;
+            color: #1a3a8a;
+            margin-left: 0;
+            margin-right: auto;
+        }
+
+        .checks label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .checks input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #1a4a9a;
+            cursor: pointer;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #1a4a9a, #2a5aaa);
+            border-radius: 10px;
+        }
+
+        .messages .message-wrapper {
+            display: flex;
+            flex-direction: column;
+            max-width: 80%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .messages .message-wrapper.user {
+            align-self: flex-end;
+            align-items: flex-end;
+        }
+
+        .messages .message-wrapper.jasechat {
+            align-self: flex-start;
+            align-items: flex-start;
+        }
+
+        .messages .message {
+            padding: 18px 24px;
+            border-radius: 24px;
+            line-height: 1.7;
+            word-wrap: break-word;
+            font-size: 19px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            width: 100%;
+        }
+
+        .message-wrapper.user .message {
+            background: linear-gradient(135deg, #1a4a9a, #2a5aaa);
+            color: #ffffff;
+            border-bottom-right-radius: 6px;
+            box-shadow: 0 4px 15px rgba(26, 74, 154, 0.2);
+        }
+
+        .message-wrapper.jasechat .message {
+            background: rgba(30, 60, 180, 0.06);
+            color: #1a1a2e;
+            border-bottom-left-radius: 6px;
+            border: 1px solid rgba(30, 60, 180, 0.08);
+        }
+
+        .sources-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(30, 60, 180, 0.1);
+        }
+
+        .sources-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a3a8a;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sources-label span {
+            background: linear-gradient(135deg, #1a4a9a, #6a4ac0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sources-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+        }
+
+        .source-link {
+            display: inline-block;
+            padding: 6px 18px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #ffffff !important;
+            text-decoration: none !important;
+            background: linear-gradient(135deg, #1a4a9a, #5a3aaa);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(26, 74, 154, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+        }
+
+        .source-link:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 25px rgba(26, 74, 154, 0.4);
+            background: linear-gradient(135deg, #2a5aaa, #6a4ac0);
+        }
+
+        .source-link:active {
+            transform: scale(0.95);
+        }
+
+        .source-link .source-icon {
+            margin-right: 4px;
+            font-size: 13px;
+        }
+
+        .message-time {
+            font-size: 13px;
+            color: #8a9aba;
+            margin-top: 6px;
+            padding: 0 4px;
+            opacity: 0.7;
+        }
+
+        .typing-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1em;
+            background: #1a4a9a;
+            margin-left: 2px;
+            animation: blink 0.7s step-end infinite;
+            vertical-align: text-bottom;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .message.thinking {
+            align-self: flex-start;
+            background: transparent;
+            color: #1a4a9a;
+            font-style: italic;
+            font-size: 17px;
+            padding: 8px 0;
+            animation: pulse 1.2s infinite;
+            max-width: 80%;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; transform: scale(0.98); }
+            50% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0.5; transform: scale(0.98); }
+        }
+
+        .input-area {
+            border-top: 1.5px solid rgba(30, 60, 180, 0.12);
+            padding-top: 10px;
+            padding-bottom: 10px;
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 850px;
+        }
+
+        .input-row input {
+            flex: 1;
+            padding: 14px 22px;
+            border: 2px solid rgba(30, 60, 180, 0.12);
+            border-radius: 32px;
+            font-size: 18px;
+            outline: none;
+            background: rgba(255, 255, 255, 0.8);
+            height: 54px;
+            min-height: 54px;
+            max-height: 54px;
+            width: 100%;
+        }
+
+        .input-row input:focus {
+            border-color: #1a4a9a;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(26, 74, 154, 0.08);
+        }
+
+        .input-row input::placeholder {
+            color: #8a9aba;
+            font-weight: 400;
+            opacity: 0.7;
+            font-size: 18px;
+        }
+
+        .input-row button {
+            background: linear-gradient(135deg, #1a4a9a, #2a5aaa);
+            border: none;
+            border-radius: 32px;
+            padding: 14px 34px;
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            box-shadow: 0 4px 15px rgba(26, 74, 154, 0.2);
+            height: 54px;
+            min-height: 54px;
+            max-height: 54px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .input-row button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(26, 74, 154, 0.3);
+        }
+
+        .disclaimer {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #6a7a9a;
+            text-align: center;
+            max-width: 850px;
+            width: 100%;
+            padding-top: 6px;
+            border-top: 1px solid rgba(30, 60, 180, 0.04);
+        }
+
+        .searching-indicator {
+            align-self: flex-start;
+            background: transparent;
+            color: #1a4a9a;
+            font-size: 17px;
+            padding: 8px 0;
+            animation: pulse 1.2s infinite;
+            max-width: 80%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .searching-indicator .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2.5px solid rgba(26, 74, 154, 0.2);
+            border-top: 2.5px solid #1a4a9a;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 700px) {
+            .chat-container {
+                padding: 16px 16px 12px;
+            }
+            .lang-selector {
+                top: 12px;
+                right: 16px;
+                padding: 2px 4px;
+                max-width: 200px;
+            }
+            .lang-selector button {
+                font-size: 10px;
+                padding: 2px 6px;
+            }
+            .mode-bar {
+                padding-right: 100px;
+            }
+            .input-row {
+                max-width: 100%;
+            }
+            .disclaimer {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container" id="app">
+    <div class="lang-selector" id="langSelector">
+        <button data-lang="ru" onclick="selectLanguage('ru')">🇷🇺 Рус</button>
+        <button class="active" data-lang="en" onclick="selectLanguage('en')">🇬🇧 En</button>
+        <button data-lang="zh" onclick="selectLanguage('zh')">🇨🇳 中文</button>
+        <button data-lang="es" onclick="selectLanguage('es')">🇪🇸 Es</button>
+        <button data-lang="ja" onclick="selectLanguage('ja')">🇯🇵 日本語</button>
+    </div>
+
+    <div class="mode-bar">
+        <div class="mode-left">
+            <span class="title" id="modeTitle">⚡ Быстрый режим</span>
+            <button class="new-chat-icon" id="newChatBtn" title="Новый чат">
+                <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/><path d="M7 9h10v2H7zm0 4h7v2H7z"/></svg>
+            </button>
+        </div>
+        <div class="mode-buttons">
+            <button class="mode-btn active" data-mode="quick" id="modeQuick">Быстрый</button>
+            <button class="mode-btn" data-mode="expert" id="modeExpert">Эксперт</button>
+            <button class="mode-btn" data-mode="recognize" id="modeRecognize">Распознавание</button>
+        </div>
+        <div class="checks">
+            <label><input type="checkbox" id="deepThink"> <span id="labelDeepThink">Глубокое мышление</span></label>
+            <label><input type="checkbox" id="smartSearch"> <span id="labelSmartSearch">Умный поиск</span></label>
+        </div>
+    </div>
+
+    <div class="messages" id="messagesContainer"></div>
+
+    <div class="input-area">
+        <div class="input-row">
+            <input type="text" id="messageInput" placeholder="Ask JaseChat...">
+            <button id="sendBtn">Send</button>
+        </div>
+        <div class="disclaimer" id="disclaimerText">JaseChat tries but may make mistakes — verify important information</div>
+    </div>
+</div>
+
+<script>
+    // ===== ПЕРЕВОДЫ (5 ЯЗЫКОВ!) =====
+    const translations = {
+        ru: {
+            modeTitle: '⚡ Быстрый режим',
+            modeQuick: 'Быстрый',
+            modeExpert: 'Эксперт',
+            modeRecognize: 'Распознавание',
+            newChat: 'Новый чат',
+            deepThink: 'Глубокое мышление',
+            smartSearch: 'Умный поиск',
+            placeholder: 'Спросите у JaseChat...',
+            send: 'Отправить',
+            disclaimer: 'JaseChat старается, но может ошибаться — проверяйте важную информацию',
+            thinking: 'JaseChat размышляет... 🤔',
+            searching: 'Поиск информации в интернете... 🔍',
+            sources: '📚 Источники:',
+            welcome: 'Привет! 👋 Я JaseChat, твой виртуальный помощник. Спроси меня о чём угодно!'
+        },
+        en: {
+            modeTitle: '⚡ Quick mode',
+            modeQuick: 'Quick',
+            modeExpert: 'Expert',
+            modeRecognize: 'Recognition',
+            newChat: 'New chat',
+            deepThink: 'Deep thinking',
+            smartSearch: 'Smart search',
+            placeholder: 'Ask JaseChat...',
+            send: 'Send',
+            disclaimer: 'JaseChat tries but may make mistakes — verify important information',
+            thinking: 'JaseChat is thinking... 🤔',
+            searching: 'Searching the internet... 🔍',
+            sources: '📚 Sources:',
+            welcome: 'Hello! 👋 I\'m JaseChat, your virtual assistant. Ask me anything!'
+        },
+        zh: {
+            modeTitle: '⚡ 快速模式',
+            modeQuick: '快速',
+            modeExpert: '专家',
+            modeRecognize: '识别',
+            newChat: '新聊天',
+            deepThink: '深度思考',
+            smartSearch: '智能搜索',
+            placeholder: '向 JaseChat 提问...',
+            send: '发送',
+            disclaimer: 'JaseChat 尽力而为，但可能会出错 — 请核实重要信息',
+            thinking: 'JaseChat 正在思考... 🤔',
+            searching: '正在互联网上搜索... 🔍',
+            sources: '📚 来源：',
+            welcome: '你好！👋 我是 JaseChat，你的虚拟助手。请问有什么可以帮你？'
+        },
+        es: {
+            modeTitle: '⚡ Modo rápido',
+            modeQuick: 'Rápido',
+            modeExpert: 'Experto',
+            modeRecognize: 'Reconocimiento',
+            newChat: 'Nuevo chat',
+            deepThink: 'Pensamiento profundo',
+            smartSearch: 'Búsqueda inteligente',
+            placeholder: 'Pregunta a JaseChat...',
+            send: 'Enviar',
+            disclaimer: 'JaseChat se esfuerza, pero puede cometer errores — verifica la información importante',
+            thinking: 'JaseChat está pensando... 🤔',
+            searching: 'Buscando información en internet... 🔍',
+            sources: '📚 Fuentes:',
+            welcome: '¡Hola! 👋 Soy JaseChat, tu asistente virtual. ¡Pregúntame lo que quieras!'
+        },
+        ja: {
+            modeTitle: '⚡ クイックモード',
+            modeQuick: 'クイック',
+            modeExpert: 'エキスパート',
+            modeRecognize: '認識',
+            newChat: '新しいチャット',
+            deepThink: 'ディープシンキング',
+            smartSearch: 'スマート検索',
+            placeholder: 'JaseChatに質問する...',
+            send: '送信',
+            disclaimer: 'JaseChatは正確性を期しますが、間違えることがあります — 重要な情報はご自身でご確認ください',
+            thinking: 'JaseChatは考えています... 🤔',
+            searching: 'インターネットで情報を検索中... 🔍',
+            sources: '📚 出典：',
+            welcome: 'こんにちは！👋 JaseChatです。何でも聞いてください！'
+        }
+    };
+
+    let currentLang = 'en';
+    let hasWelcomeMessage = false;
+
+    const messagesContainer = document.getElementById('messagesContainer');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const newChatBtn = document.getElementById('newChatBtn');
+    const modeTitle = document.getElementById('modeTitle');
+    const modeQuick = document.getElementById('modeQuick');
+    const modeExpert = document.getElementById('modeExpert');
+    const modeRecognize = document.getElementById('modeRecognize');
+    const labelDeepThink = document.getElementById('labelDeepThink');
+    const labelSmartSearch = document.getElementById('labelSmartSearch');
+    const disclaimerText = document.getElementById('disclaimerText');
+    const langBtns = document.querySelectorAll('.lang-selector button');
+
+    function randomChoice(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    function selectLanguage(lang) {
+        const t = translations[lang];
+        if (!t) return;
+        currentLang = lang;
+        modeTitle.textContent = t.modeTitle;
+        modeQuick.textContent = t.modeQuick;
+        modeExpert.textContent = t.modeExpert;
+        modeRecognize.textContent = t.modeRecognize;
+        labelDeepThink.textContent = t.deepThink;
+        labelSmartSearch.textContent = t.smartSearch;
+        messageInput.placeholder = t.placeholder;
+        sendBtn.textContent = t.send;
+        disclaimerText.textContent = t.disclaimer;
+        newChatBtn.title = t.newChat;
+
+        langBtns.forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.lang === lang) {
+                btn.classList.add('active');
+            }
+        });
+
+        try { localStorage.setItem('jasechat_lang', lang); } catch(e) {}
+        startNewChat();
+    }
+
+    // ===== ПОИСК =====
+    function getEmulatedSources(query, lang) {
+        const domains = {
+            ru: [
+                { title: 'Википедия', url: 'https://ru.wikipedia.org' },
+                { title: 'РИА Новости', url: 'https://ria.ru' },
+                { title: 'ТАСС', url: 'https://tass.ru' },
+                { title: 'Коммерсантъ', url: 'https://kommersant.ru' },
+                { title: 'РБК', url: 'https://rbc.ru' },
+                { title: 'Интерфакс', url: 'https://interfax.ru' }
+            ],
+            en: [
+                { title: 'Wikipedia', url: 'https://en.wikipedia.org' },
+                { title: 'BBC News', url: 'https://bbc.com' },
+                { title: 'Reuters', url: 'https://reuters.com' },
+                { title: 'The Guardian', url: 'https://theguardian.com' },
+                { title: 'CNN', url: 'https://cnn.com' }
+            ],
+            zh: [
+                { title: '维基百科', url: 'https://zh.wikipedia.org' },
+                { title: '百度百科', url: 'https://baike.baidu.com' },
+                { title: '新浪', url: 'https://sina.com.cn' },
+                { title: '人民网', url: 'https://people.com.cn' },
+                { title: '新华网', url: 'https://xinhuanet.com' }
+            ],
+            es: [
+                { title: 'Wikipedia', url: 'https://es.wikipedia.org' },
+                { title: 'El País', url: 'https://elpais.com' },
+                { title: 'BBC Mundo', url: 'https://bbc.com/mundo' },
+                { title: 'CNN Español', url: 'https://cnnespanol.cnn.com' },
+                { title: 'El Mundo', url: 'https://elmundo.es' }
+            ],
+            ja: [
+                { title: 'Wikipedia', url: 'https://ja.wikipedia.org' },
+                { title: 'NHK', url: 'https://nhk.or.jp' },
+                { title: '朝日新聞', url: 'https://asahi.com' },
+                { title: '読売新聞', url: 'https://yomiuri.co.jp' },
+                { title: '毎日新聞', url: 'https://mainichi.jp' }
+            ]
+        };
+
+        const langMap = lang === 'ru' ? 'ru' : lang === 'zh' ? 'zh' : lang === 'es' ? 'es' : lang === 'ja' ? 'ja' : 'en';
+        const domainList = domains[langMap] || domains.en;
+
+        const shuffled = [...domainList].sort(() => Math.random() - 0.5);
+        const count = 2 + Math.floor(Math.random() * 3);
+        const result = [];
+        for (let i = 0; i < Math.min(count, shuffled.length); i++) {
+            const domain = shuffled[i];
+            result.push({
+                title: domain.title,
+                url: domain.url + '/search?q=' + encodeURIComponent(query)
+            });
+        }
+        return result;
+    }
+
+    function getSearchKnowledge(query, lang) {
+        const msg = query.toLowerCase().trim();
+
+        if (lang === 'ru') {
+            if (msg.includes('президент') || msg.includes('путин') || msg.includes('владимир')) {
+                return randomChoice([
+                    'Владимир Путин является президентом Российской Федерации. Он занимает этот пост с 2000 года (с перерывом на премьерство в 2008-2012 годах). За время его правления Россия пережила несколько экономических циклов, изменения во внешней политике и укрепление государственности.',
+                    'Путин Владимир Владимирович — действующий президент России. Его политика направлена на укрепление суверенитета страны, развитие военно-промышленного комплекса и социальной сферы.',
+                    'Владимир Путин — президент РФ с 2000 года. Его правление отмечено такими событиями как укрепление вертикали власти, возвращение Крыма в состав России, участие в урегулировании сирийского конфликта.'
+                ]);
+            }
+            if (msg.includes('экономика') || msg.includes('кризис') || msg.includes('инфляция')) {
+                return randomChoice([
+                    'Экономика России за последние годы столкнулась с вызовами, связанными с санкционным давлением и волатильностью цен на энергоносители. ВВП страны показывает адаптацию к новым условиям, растёт импортозамещение в ряде отраслей.',
+                    'Российская экономика переживает период трансформации. Основные драйверы роста: внутренний спрос, развитие IT-сектора, агропромышленного комплекса и оборонной промышленности.',
+                    'Экономическая ситуация в России характеризуется постепенной стабилизацией после периода высокой волатильности. Ключевые показатели находятся на контролируемом уровне.'
+                ]);
+            }
+            if (msg.includes('война') || msg.includes('конфликт') || msg.includes('украина')) {
+                return randomChoice([
+                    'Конфликт на Украине остаётся одной из главных тем международной повестки. С 2022 года ведутся активные боевые действия, которые привели к значительным человеческим и материальным потерям.',
+                    'Ситуация вокруг Украины продолжает оставаться напряжённой. Военные действия на Донбассе и других территориях привели к гуманитарному кризису. Международные организации призывают к дипломатическому урегулированию.',
+                    'С 2022 года вооружённый конфликт между Россией и Украиной находится в активной фазе. Это привело к серьёзным экономическим и политическим последствиям для всего мира.'
+                ]);
+            }
+            return randomChoice([
+                'По вашему запросу я нашёл информацию в интернете. Данная тема активно обсуждается в экспертных кругах. Рекомендую ознакомиться с источниками для полной картины.',
+                'В открытых источниках содержится достаточно информации по вашему вопросу. Для углублённого изучения рекомендую обратиться к специализированным материалам.',
+                'В интернете доступно множество материалов по вашей теме. Анализ показывает, что вопрос имеет несколько аспектов, каждый из которых заслуживает внимания.'
+            ]);
+        } else if (lang === 'en') {
+            if (msg.includes('president') || msg.includes('putin')) {
+                return randomChoice([
+                    'Vladimir Putin is the President of the Russian Federation. He has held this position since 2000. During his rule, Russia has experienced several economic cycles and changes in foreign policy.',
+                    'Putin Vladimir Vladimirovich is the current President of Russia. His policy is aimed at strengthening the country\'s sovereignty and developing the military-industrial complex.',
+                    'Vladimir Putin has been President of Russia since 2000. His tenure has been marked by strengthening the vertical of power and the return of Crimea to Russia.'
+                ]);
+            }
+            if (msg.includes('economy') || msg.includes('crisis') || msg.includes('inflation')) {
+                return randomChoice([
+                    'The Russian economy has faced challenges related to sanctions pressure. The country\'s GDP shows adaptation to new conditions, and import substitution is growing.',
+                    'The Russian economy is going through a period of transformation. The main drivers of growth are domestic demand and development of the IT sector.',
+                    'The economic situation in Russia is characterized by gradual stabilization after a period of high volatility.'
+                ]);
+            }
+            if (msg.includes('war') || msg.includes('conflict') || msg.includes('ukraine')) {
+                return randomChoice([
+                    'The conflict in Ukraine remains one of the main topics on the international agenda. Since 2022, active hostilities have been ongoing.',
+                    'The situation around Ukraine continues to be tense. Military operations have led to a humanitarian crisis. International organizations are calling for a diplomatic settlement.',
+                    'Since 2022, the armed conflict between Russia and Ukraine has been in an active phase, leading to serious economic and political consequences.'
+                ]);
+            }
+            return randomChoice([
+                'I found information on your query on the internet. This topic is actively discussed in expert circles.',
+                'Open sources contain enough information to form a general understanding of your question.',
+                'There are many materials available on the internet on your topic. The analysis shows that the issue has several aspects.'
+            ]);
+        } else if (lang === 'es') {
+            if (msg.includes('presidente') || msg.includes('putin')) {
+                return randomChoice([
+                    'Vladimir Putin es el presidente de la Federación Rusa. Ocupa este cargo desde 2000. Durante su mandato, Rusia ha experimentado varios ciclos económicos y cambios en la política exterior.',
+                    'Putin es el actual presidente de Rusia. Su política está dirigida a fortalecer la soberanía del país y desarrollar el complejo militar-industrial.',
+                    'Vladímir Putin ha sido presidente de Rusia desde 2000. Su mandato ha estado marcado por el fortalecimiento del poder ejecutivo y el regreso de Crimea a Rusia.'
+                ]);
+            }
+            if (msg.includes('economía') || msg.includes('crisis') || msg.includes('inflación')) {
+                return randomChoice([
+                    'La economía rusa ha enfrentado desafíos relacionados con la presión de las sanciones. El PIB muestra adaptación a nuevas condiciones y el crecimiento de la sustitución de importaciones.',
+                    'La economía rusa está experimentando un período de transformación. Los principales motores del crecimiento son la demanda interna y el desarrollo del sector IT.',
+                    'La situación económica en Rusia se caracteriza por una estabilización gradual después de un período de alta volatilidad.'
+                ]);
+            }
+            if (msg.includes('guerra') || msg.includes('conflicto') || msg.includes('ucrania')) {
+                return randomChoice([
+                    'El conflicto en Ucrania sigue siendo uno de los principales temas de la agenda internacional. Desde 2022, se han llevado a cabo hostilidades activas.',
+                    'La situación alrededor de Ucrania sigue siendo tensa. Las operaciones militares han llevado a una crisis humanitaria. Las organizaciones internacionales piden una solución diplomática.',
+                    'Desde 2022, el conflicto armado entre Rusia y Ucrania se encuentra en una fase activa, lo que ha llevado a graves consecuencias económicas y políticas.'
+                ]);
+            }
+            return randomChoice([
+                'Encontré información en internet sobre tu consulta. Este tema se discute activamente en círculos expertos.',
+                'Las fuentes abiertas contienen suficiente información para formar una comprensión general de tu pregunta.',
+                'Hay muchos materiales disponibles en internet sobre tu tema. El análisis muestra que el problema tiene varios aspectos.'
+            ]);
+        } else if (lang === 'ja') {
+            if (msg.includes('大統領') || msg.includes('プーチン')) {
+                return randomChoice([
+                    'ウラジミール・プーチンはロシア連邦の大統領です。2000年からこの地位に就いています。彼の統治下で、ロシアはいくつかの経済サイクルと外交政策の変化を経験しました。',
+                    'プーチンはロシアの現大統領です。彼の政策は国の主権を強化し、軍事産業複合体を発展させることを目的としています。',
+                    'ウラジミール・プーチンは2000年からロシアの大統領を務めています。彼の任期中、権力の垂直化とクリミアのロシアへの返還がありました。'
+                ]);
+            }
+            if (msg.includes('経済') || msg.includes('危機') || msg.includes('インフレ')) {
+                return randomChoice([
+                    'ロシア経済は制裁圧力に関連した課題に直面しています。GDPは新たな条件への適応を示しており、輸入代替が成長しています。',
+                    'ロシア経済は変革期を迎えています。成長の主な原動力は国内需要とITセクターの発展です。',
+                    'ロシアの経済状況は、高い変動性の期間を経て、徐々に安定化しているのが特徴です。'
+                ]);
+            }
+            if (msg.includes('戦争') || msg.includes('紛争') || msg.includes('ウクライナ')) {
+                return randomChoice([
+                    'ウクライナ紛争は国際的な議題の主要なテーマの一つであり続けています。2022年以来、積極的な戦闘が続いています。',
+                    'ウクライナをめぐる状況は依然として緊張しています。軍事作戦は人道危機を引き起こしました。国際機関は外交的解決を呼びかけています。',
+                    '2022年以来、ロシアとウクライナの間の武力紛争は活発な段階にあり、深刻な経済的・政治的結果をもたらしています。'
+                ]);
+            }
+            return randomChoice([
+                'インターネットであなたの質問に関する情報を見つけました。このトピックは専門家の間で積極的に議論されています。',
+                'オープンソースにはあなたの質問を理解するのに十分な情報が含まれています。',
+                'インターネットにはあなたのトピックに関する多くの資料があります。分析によると、この問題にはいくつかの側面があります。'
+            ]);
+        } else {
+            if (msg.includes('总统') || msg.includes('普京')) {
+                return randomChoice([
+                    '弗拉基米尔·普京是俄罗斯联邦总统。他自2000年以来一直担任这一职务。在他的统治下，俄罗斯经历了几次经济周期和外交政策的变化。',
+                    '普京是俄罗斯现任总统。他的政策旨在加强国家主权和发展军事工业综合体。',
+                    '普京自2000年起担任俄罗斯总统。他的任期以加强权力垂直和克里米亚回归俄罗斯为标志。'
+                ]);
+            }
+            return randomChoice([
+                '我在互联网上找到了关于您问题的信息。这个主题在专家圈中被积极讨论。',
+                '公开来源包含足够的信息来形成对您问题的总体理解。',
+                '互联网上有许多关于您主题的材料。分析表明，这个问题有几个方面。'
+            ]);
+        }
+    }
+
+    function generateSearchResponse(query, lang, sources) {
+        const knowledge = getSearchKnowledge(query, lang);
+        const intros = {
+            ru: ['Я нашёл информацию по вашему запросу! 📊 Вот что удалось выяснить:'],
+            en: ['I found information on your request! 📊 Here\'s what I discovered:'],
+            zh: ['我找到了关于您问题的信息！📊 以下是发现的内容：'],
+            es: ['¡Encontré información sobre tu consulta! 📊 Esto es lo que pude averiguar:'],
+            ja: ['あなたの質問に関する情報を見つけました！📊 以下がわかったことです：']
+        };
+        const langMap = lang === 'ru' ? 'ru' : lang === 'zh' ? 'zh' : lang === 'es' ? 'es' : lang === 'ja' ? 'ja' : 'en';
+        const intro = randomChoice(intros[langMap] || intros.en);
+        return intro + '\n\n' + knowledge;
+    }
+
+    async function searchAndGenerateResponse(query, lang) {
+        const t = translations[lang];
+        const searchDiv = document.createElement('div');
+        searchDiv.className = 'searching-indicator';
+        searchDiv.id = 'searchingIndicator';
+        searchDiv.innerHTML = `<span class="spinner"></span> ${t.searching}`;
+        messagesContainer.appendChild(searchDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        await sleep(600 + Math.random() * 800);
+
+        const sources = getEmulatedSources(query, lang);
+        const indicator = document.getElementById('searchingIndicator');
+        if (indicator) indicator.remove();
+
+        const response = generateSearchResponse(query, lang, sources);
+        return { text: response, sources: sources };
+    }
+
+    function getBaseResponse(msg, lang) {
+        const q = msg.toLowerCase();
+        const t = translations[lang];
+        
+        if (lang === 'ru') {
+            if (q.includes('кто тебя создал') || q.includes('озарко') || q.includes('создатель')) {
+                return randomChoice([
+                    'Меня создал Озарко Евгений Михайлович из России 🇷🇺. Он разработчик с большой душой!',
+                    'Я был создан в России 🇷🇺 талантливым разработчиком — Озарко Евгением Михайловичем. 🧑‍💻',
+                    'Озарко Евгений Михайлович — мой создатель. Он вложил много сил в моё развитие!'
+                ]);
+            }
+            if (q.includes('привет') || q.includes('здравствуй')) {
+                return randomChoice([
+                    'Привет! 👋 Я JaseChat, твой помощник.',
+                    'Здравствуйте! 🌟 Рад видеть тебя!',
+                    'Приветствую! 🤖 Чем могу помочь?'
+                ]);
+            }
+            if (q.includes('как дела') || q.includes('как жизнь')) {
+                return randomChoice([
+                    'У меня всё отлично! 🌟 А как у тебя?',
+                    'Прекрасно! 😊 Как твои дела?',
+                    'Всё замечательно! 💪 Расскажи о себе!'
+                ]);
+            }
+            if (q.includes('кто ты') || q.includes('расскажи о себе')) {
+                return 'Я JaseChat — нейросеть, созданная в России 🇷🇺. Я умею отвечать на вопросы, помогать с задачами и генерировать идеи!';
+            }
+            if (q.includes('время') || q.includes('сколько время')) {
+                return `Сейчас ${new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })} по твоему времени. ⏰`;
+            }
+            if (q.includes('спасибо')) {
+                return randomChoice([
+                    'Пожалуйста! 🙏 Рад был помочь.',
+                    'Всегда пожалуйста! 😊',
+                    'Не за что! 🌟 Обращайся ещё!'
+                ]);
+            }
+            if (q.includes('пока') || q.includes('до свидания')) {
+                return randomChoice([
+                    'До свидания! 👋 Было приятно пообщаться.',
+                    'Пока-пока! 😄 Заходи ещё!',
+                    'Всего доброго! 🌈 Хорошего дня!'
+                ]);
+            }
+            return randomChoice([
+                'Интересный вопрос! 🤔 Давай подумаем вместе.',
+                'Отличный вопрос! 💭 Я готов помочь.',
+                'Хм, задумался... 🤖 Я готов обсудить это с тобой!'
+            ]);
+        } else if (lang === 'en') {
+            if (q.includes('who created you') || q.includes('creator') || q.includes('ozarko')) {
+                return randomChoice([
+                    'I was created by Evgeny Ozarko from Russia 🇷🇺. He\'s a talented developer!',
+                    'My creator is Evgeny Mikhailovich Ozarko from Russia 🇷🇺.',
+                    'Evgeny Ozarko is my creator. He put a lot of effort into my development!'
+                ]);
+            }
+            if (q.includes('hello') || q.includes('hi')) {
+                return randomChoice([
+                    'Hello! 👋 I\'m JaseChat, your assistant.',
+                    'Hi there! 🌟 Nice to see you!',
+                    'Greetings! 🤖 How can I help you?'
+                ]);
+            }
+            if (q.includes('how are you')) {
+                return randomChoice([
+                    'I\'m doing great! 🌟 How about you?',
+                    'Fantastic! 😊 How are you?',
+                    'Everything is great! 💪 Tell me about yourself!'
+                ]);
+            }
+            if (q.includes('who are you')) {
+                return 'I\'m JaseChat — a neural network created in Russia 🇷🇺. I can answer questions, help with tasks, and generate ideas!';
+            }
+            if (q.includes('time')) {
+                return `It\'s ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} in your local time. ⏰`;
+            }
+            return randomChoice([
+                'Interesting question! 🤔 Let\'s think together.',
+                'Great question! 💭 I\'m ready to help.',
+                'Hmm, let me think... 🤖 I\'m ready to discuss this with you!'
+            ]);
+        } else if (lang === 'es') {
+            if (q.includes('quien te creó') || q.includes('creador') || q.includes('ozarko')) {
+                return randomChoice([
+                    '¡Me creó Evgeny Ozarko de Rusia 🇷🇺! ¡Es un desarrollador talentoso!',
+                    'Mi creador es Evgeny Mikhailovich Ozarko de Rusia 🇷🇺.',
+                    'Evgeny Ozarko es mi creador. ¡Puso mucho esfuerzo en mi desarrollo!'
+                ]);
+            }
+            if (q.includes('hola') || q.includes('holi')) {
+                return randomChoice([
+                    '¡Hola! 👋 Soy JaseChat, tu asistente.',
+                    '¡Hola! 🌟 Me alegra verte!',
+                    '¡Saludos! 🤖 ¿Cómo puedo ayudarte?'
+                ]);
+            }
+            if (q.includes('cómo estás') || q.includes('que tal')) {
+                return randomChoice([
+                    '¡Estoy genial! 🌟 ¿Y tú?',
+                    '¡Fantástico! 😊 ¿Cómo estás?',
+                    '¡Todo bien! 💪 ¿Qué cuentas?'
+                ]);
+            }
+            if (q.includes('quién eres') || q.includes('qué puedes hacer')) {
+                return 'Soy JaseChat — una red neuronal creada en Rusia 🇷🇺. ¡Puedo responder preguntas, ayudar con tareas y generar ideas!';
+            }
+            if (q.includes('tiempo') || q.includes('hora')) {
+                return `Son las ${new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} ⏰`;
+            }
+            if (q.includes('gracias')) {
+                return randomChoice([
+                    '¡De nada! 🙏 Me alegra ayudar.',
+                    '¡Siempre es un placer! 😊',
+                    '¡No hay problema! 🌟 Vuelve cuando quieras.'
+                ]);
+            }
+            if (q.includes('adiós') || q.includes('chao')) {
+                return randomChoice([
+                    '¡Adiós! 👋 Fue un placer.',
+                    '¡Nos vemos! 😄 Vuelve pronto.',
+                    '¡Cuídate! 🌈 Que tengas un buen día.'
+                ]);
+            }
+            return randomChoice([
+                '¡Buena pregunta! 🤔 Pensemos juntos.',
+                '¡Excelente pregunta! 💭 Estoy listo para ayudar.',
+                'Mmm, déjame pensar... 🤖 Estoy listo para discutirlo.'
+            ]);
+        } else if (lang === 'ja') {
+            if (q.includes('誰が作った') || q.includes('作成者') || q.includes('ozarko')) {
+                return randomChoice([
+                    'ロシアのエフゲニー・オザルコによって作られました 🇷🇺 彼は才能ある開発者です！',
+                    '私の創造者はロシアのエフゲニー・ミハイロヴィチ・オザルコです。',
+                    'エフゲニー・オザルコが私の創造者です。彼は私の開発に多くの努力を注ぎました。'
+                ]);
+            }
+            if (q.includes('こんにちは') || q.includes('やあ')) {
+                return randomChoice([
+                    'こんにちは！👋 JaseChatです、あなたのアシスタントです。',
+                    'やあ！🌟 お会いできて嬉しいです！',
+                    'ごきげんよう！🤖 何かお手伝いできますか？'
+                ]);
+            }
+            if (q.includes('元気') || q.includes('調子')) {
+                return randomChoice([
+                    '絶好調です！🌟 あなたはどうですか？',
+                    '素晴らしいです！😊 お元気ですか？',
+                    '全て順調です！💪 あなたはどうですか？'
+                ]);
+            }
+            if (q.includes('あなたは誰') || q.includes('何ができる')) {
+                return '私はJaseChatです — ロシアで作られたニューラルネットワークです。質問に答えたり、タスクを手伝ったり、アイデアを生成したりできます！';
+            }
+            if (q.includes('時間') || q.includes('今何時')) {
+                return `今は ${new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })} です ⏰`;
+            }
+            if (q.includes('ありがとう')) {
+                return randomChoice([
+                    'どういたしまして！🙏 お役に立てて嬉しいです。',
+                    'いつでもどうぞ！😊',
+                    'いいえ、どういたしまして！🌟 またいつでもどうぞ。'
+                ]);
+            }
+            if (q.includes('さようなら') || q.includes('またね')) {
+                return randomChoice([
+                    'さようなら！👋 お話できて嬉しかったです。',
+                    'またね！😄 いつでも戻ってきてください。',
+                    'お気をつけて！🌈 良い一日をお過ごしください。'
+                ]);
+            }
+            return randomChoice([
+                '面白い質問ですね！🤔 一緒に考えましょう。',
+                '素晴らしい質問です！💭 お手伝いします。',
+                'うーん、考えさせてください... 🤖 このことについて話し合いましょう。'
+            ]);
+        } else {
+            if (q.includes('谁创造') || q.includes('创造者') || q.includes('ozarko')) {
+                return randomChoice([
+                    '我是在俄罗斯 🇷🇺 由开发者奥扎尔科·叶夫根尼·米哈伊洛维奇创造的。',
+                    '我的创造者是来自俄罗斯 🇷🇺 的叶夫根尼·奥扎尔科。',
+                    '奥扎尔科·叶夫根尼·米哈伊洛维奇是我的创造者。'
+                ]);
+            }
+            if (q.includes('你好') || q.includes('嗨')) {
+                return randomChoice([
+                    '你好！👋 我是 JaseChat，你的助手。请问有什么可以帮你？',
+                    '您好！🌟 很高兴见到你！有什么我可以帮你的吗？',
+                    '嗨！🤖 我是 JaseChat，你的虚拟助手。今天我能为你做些什么？'
+                ]);
+            }
+            if (q.includes('你好吗') || q.includes('怎么样')) {
+                return randomChoice([
+                    '我很好！🌟 谢谢关心。你呢？',
+                    '非常好！😊 一切都很好。你怎么样？',
+                    '一切都很棒！💪 我今天感觉很好。你呢？'
+                ]);
+            }
+            if (q.includes('你是谁') || q.includes('你会什么')) {
+                return '我是 JaseChat — 一个在俄罗斯 🇷🇺 开发的神经网络。我可以回答问题、帮助搜索信息、生成创意、解释复杂事物！';
+            }
+            if (q.includes('时间') || q.includes('几点')) {
+                return `现在时间是 ${new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })} ⏰`;
+            }
+            if (q.includes('谢谢') || q.includes('感谢')) {
+                return randomChoice([
+                    '不客气！🙏 很高兴能帮到你。',
+                    '不用谢！😊 随时欢迎回来！',
+                    '我的荣幸！🌟 需要帮助随时找我！'
+                ]);
+            }
+            if (q.includes('再见') || q.includes('拜拜')) {
+                return randomChoice([
+                    '再见！👋 很高兴和你聊天。保重！',
+                    '拜拜！😄 下次再来找我聊天！',
+                    '保重！🌈 祝你一天愉快！'
+                ]);
+            }
+            return randomChoice([
+                '有趣的问题！🤔 让我们一起想想。',
+                '好问题！💭 我准备好帮助你了。',
+                '嗯，让我想想... 🤖 我准备和你讨论这个问题！'
+            ]);
+        }
+    }
+
+    async function getJaseChatResponseWithSearch(userMessage, lang) {
+        const msg = userMessage.toLowerCase().trim();
+
+        const searchTopics = [
+            'политика', 'политик', 'президент', 'выборы', 'депутат',
+            'война', 'военный', 'конфликт', 'санкция', 'экономика', 'кризис',
+            'новости', 'сегодня', 'вчера', 'произошло', 'случилось',
+            'закон', 'законодательство', 'суд',
+            'международный', 'ООН', 'НАТО', 'ЕС',
+            'коронавирус', 'ковид', 'вакцина', 'пандемия',
+            'цены', 'инфляция', 'курс', 'доллар', 'евро',
+            'погода', 'завтра', 'прогноз',
+            'путин', 'владимир', 'россия', 'украина'
+        ];
+
+        const needsSearch = searchTopics.some(topic => msg.includes(topic));
+
+        if (!needsSearch) {
+            const response = getBaseResponse(msg, lang);
+            return { text: response, sources: null };
+        }
+
+        return await searchAndGenerateResponse(userMessage, lang);
+    }
+
+    function getCurrentTime() {
+        return new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function typeMessageSimple(text, wrapper, callback) {
+        const msgDiv = wrapper.querySelector('.message');
+        if (!msgDiv) return;
+
+        msgDiv.innerHTML = '';
+        
+        let index = 0;
+        const typingSpeed = 5;
+
+        function typeNext() {
+            if (index < text.length) {
+                const charNode = document.createTextNode(text[index]);
+                msgDiv.appendChild(charNode);
+                index++;
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                setTimeout(typeNext, typingSpeed);
+            } else {
+                const cursor = msgDiv.querySelector('.typing-cursor');
+                if (cursor) cursor.remove();
+                if (callback) callback();
+            }
+        }
+
+        const cursor = document.createElement('span');
+        cursor.className = 'typing-cursor';
+        msgDiv.appendChild(cursor);
+
+        setTimeout(typeNext, 200);
+    }
+
+    function addMessage(text, sender, shouldType = false, sources = null) {
+        const wrapper = document.createElement('div');
+        wrapper.className = `message-wrapper ${sender}`;
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message';
+        wrapper.appendChild(msgDiv);
+
+        let displayText = text;
+
+        if (sources && sources.length > 0) {
+            const t = translations[currentLang];
+            const sourceLinks = sources.map(s => 
+                `<a href="${s.url}" target="_blank" class="source-link" rel="noopener noreferrer">
+                    <span class="source-icon">🔗</span> ${s.title}
+                </a>`
+            ).join('');
+
+            const sourcesHtml = `
+                <div class="sources-section">
+                    <div class="sources-label">📚 <span>${t.sources}</span></div>
+                    <div class="sources-list">${sourceLinks}</div>
+                </div>
+            `;
+
+            displayText = text + '\n\n---\n📚 ' + t.sources + ': ' + sources.map(s => s.title).join(', ');
+        }
+
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'message-time';
+        timeSpan.textContent = getCurrentTime();
+        wrapper.appendChild(timeSpan);
+
+        messagesContainer.appendChild(wrapper);
+
+        if (shouldType && sender === 'jasechat') {
+            typeMessageSimple(displayText, wrapper);
+        } else {
+            msgDiv.textContent = displayText;
+        }
+
+        if (sources && sources.length > 0) {
+            const t = translations[currentLang];
+            setTimeout(() => {
+                const existingDiv = wrapper.querySelector('.message');
+                if (existingDiv) {
+                    const sourceLinks = sources.map(s => 
+                        `<a href="${s.url}" target="_blank" class="source-link" rel="noopener noreferrer">
+                            <span class="source-icon">🔗</span> ${s.title}
+                        </a>`
+                    ).join('');
+
+                    const sourcesHtml = `
+                        <div class="sources-section">
+                            <div class="sources-label">📚 <span>${t.sources}</span></div>
+                            <div class="sources-list">${sourceLinks}</div>
+                        </div>
+                    `;
+                    existingDiv.innerHTML = text + '<br><br>' + sourcesHtml;
+                }
+            }, text.length * 5 + 500);
+        }
+
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        return wrapper;
+    }
+
+    function addThinkingIndicator() {
+        const t = translations[currentLang];
+        const div = document.createElement('div');
+        div.className = 'message thinking';
+        div.id = 'thinkingIndicator';
+        div.textContent = t.thinking;
+        messagesContainer.appendChild(div);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function removeThinkingIndicator() {
+        const el = document.getElementById('thinkingIndicator');
+        if (el) el.remove();
+    }
+
+    async function simulateJaseChatResponse(userMessage) {
+        addThinkingIndicator();
+        await sleep(400 + Math.random() * 400);
+        removeThinkingIndicator();
+
+        const result = await getJaseChatResponseWithSearch(userMessage, currentLang);
+        addMessage(result.text, 'jasechat', true, result.sources);
+    }
+
+    function sendMessage() {
+        const text = messageInput.value.trim();
+        if (!text) return;
+        addMessage(text, 'user', false);
+        messageInput.value = '';
+        messageInput.focus();
+        simulateJaseChatResponse(text);
+    }
+
+    function startNewChat() {
+        messagesContainer.innerHTML = '';
+        removeThinkingIndicator();
+        hasWelcomeMessage = false;
+        showWelcomeMessage();
+        messageInput.focus();
+    }
+
+    function showWelcomeMessage() {
+        if (!hasWelcomeMessage) {
+            const t = translations[currentLang];
+            addMessage(t.welcome, 'jasechat', true);
+            hasWelcomeMessage = true;
+        }
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    newChatBtn.addEventListener('click', startNewChat);
+
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    window.addEventListener('load', function() {
+        let savedLang = null;
+        try {
+            const stored = localStorage.getItem('jasechat_lang');
+            if (stored === 'ru' || stored === 'en' || stored === 'zh' || stored === 'es' || stored === 'ja') {
+                savedLang = stored;
+            }
+        } catch(e) {}
+
+        if (savedLang) {
+            selectLanguage(savedLang);
+        } else {
+            selectLanguage('en');
+        }
+
+        messageInput.focus();
+    });
+</script>
+
+</body>
+</html>
