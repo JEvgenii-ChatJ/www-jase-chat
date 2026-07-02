@@ -1,2 +1,2 @@
 # www-jase-chat
-JaseChat — ИИ-помощник
+JaseChat — AI Assistant
